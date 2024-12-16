@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .hotel { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Reservar Hotel</h1>
+    <form id="busca-form">
+        <label>Check-in:</label>
+        <input type="date" id="checkin" required>
+        <label>Check-out:</label>
+        <input type="date" id="checkout" required>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <div id="hoteis-disponiveis"></div>
+
+    <script>
+        const form = document.getElementById('busca-form');
+        const hoteisDiv = document.getElementById('hoteis-disponiveis');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+
+            const response = await fetch(`buscar_hoteis.php?checkin=${checkin}&checkout=${checkout}`);
+            const hoteis = await response.json();
+
+            hoteisDiv.innerHTML = '';
+            hoteis.forEach(hotel => {
+                const div = document.createElement('div');
+                div.classList.add('hotel');
+                div.innerHTML = `
+                    <h2>${hotel.nome}</h2>
+                    <p>${hotel.endereco}</p>
+                    <p>${hotel.descricao}</p>
+                    <button onclick="reservar(${hotel.id}, '${checkin}', '${checkout}')">Reservar</button>
+                `;
+                hoteisDiv.appendChild(div);
+            });
+        });
+
+        async function reservar(hotelId, checkin, checkout) {
+            const formData = new FormData();
+            formData.append('hotel_id', hotelId);
+            formData.append('checkin', checkin);
+            formData.append('checkout', checkout);
+
+            const response = await fetch('reservar_hotel.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const message = await response.text();
+            alert(message);
+        }
+    </script>
+</body>
+</html>
